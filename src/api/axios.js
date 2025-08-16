@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000", // ajuste conforme sua API
+  baseURL: "https://backend-saboreequilibrio.onrender.com/",
+  //baseURL: "http://localhost:5000",
   withCredentials: true,
 });
 
