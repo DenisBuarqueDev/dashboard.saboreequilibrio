@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
   // pega o estado do usuário logado
   const getStateUser = async () => {
     try {
-      const res = await api.get("api/auth/me", { withCredentials: true });
+      const res = await api.get("/api/auth/me", { withCredentials: true });
       setUser(res.data.user);
     } catch {
       setUser(null);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       const res = await api.post(
-        "api/auth/login",
+        "/api/auth/login",
         { email, password },
         { withCredentials: true }
       );
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
       navigate("/");
     } catch (error) {
       console.error("Erro no login:", error.response?.data || error.message);
-      toast.error(error.response?.data?.error || "Erro ao fazer login");
+      toast.error(error.response.data.error);
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await api.post("api/auth/logout", {}, { withCredentials: true });
+      await api.post("/api/auth/logout", {}, { withCredentials: true });
       toast.success("Usuário desconectado!");
       navigate("/login");
     } catch (err) {

@@ -11,16 +11,17 @@ const index = () => {
   const [title, setTitle] = useState("");
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
       const response = await api.get("/api/categories");
-      setCategories(response.data);
+      setCategories(response.data.data);
       setMessage("");
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao buscar categorias");
+      setError(error.response.data.error);
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +36,7 @@ const index = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      setMessage("O título da categoria é obrigatório");
+      setError("O título da categoria é obrigatório");
       return;
     }
 
@@ -43,40 +44,55 @@ const index = () => {
     try {
       if (editId) {
         // Atualizar categoria
-        const response = await api.put(`/api/categories/${editId}`, { title });
+        const response = await api.put(
+          `/api/categories/${editId}`,
+          { title },
+          {
+            withCredentials: true,
+          }
+        );
         setCategories(
           categories.map((cat) =>
             cat._id === editId ? response.data.data : cat
           )
         );
         setMessage(response.data.message);
-        setIsOpen(false);
       } else {
         // Criar nova categoria
-        const response = await api.post("/api/categories", { title });
+        const response = await api.post(
+          "/api/categories",
+          { title },
+          {
+            withCredentials: true,
+          }
+        );
         setCategories([response.data.data, ...categories]);
         setMessage(response.data.message);
-        setIsOpen(false);
       }
       setTitle("");
       setEditId(null);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao salvar categoria");
+      setError(error.response.data.error);
     } finally {
       setIsLoading(false);
+      setIsOpen(false);
     }
   };
 
   // Editar categoria
   const handleEdit = async (id) => {
     try {
-      const response = await api.get(`/api/categories/${id}`);
+      setIsLoading(true);
+      const response = await api.get(`/api/categories/${id}`, {
+        withCredentials: true,
+      });
       setTitle(response.data.title);
       setEditId(id);
       setIsOpen(true);
-      setMessage("");
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao buscar categoria");
+      setError(error.response.data.error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,13 +103,16 @@ const index = () => {
 
     setIsLoading(true);
     try {
-      const response = await api.delete(`/api/categories/${id}`);
+      const response = await api.delete(`/api/categories/${id}`, {
+        withCredentials: true,
+      });
       setCategories(categories.filter((cat) => cat._id !== id));
       setMessage(response.data.message);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao excluir categoria");
+      setError(error.response?.data?.error || "Erro ao excluir categoria");
     } finally {
       setIsLoading(false);
+      setIsOpen(false);
     }
   };
 
@@ -124,6 +143,44 @@ const index = () => {
         </button>
       </div>
 
+      {message && (
+        <div
+          id="alert-border-3"
+          className="flex items-center p-4 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800"
+          role="alert"
+        >
+          <svg
+            className="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div className="ms-3 text-sm font-medium">{message}</div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          id="alert-border-2"
+          className="flex items-center p-4 mb-4 text-red-800 border-t-4 border-red-300 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-red-800"
+          role="alert"
+        >
+          <svg
+            className="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div className="ms-3 text-sm font-medium">{error}</div>
+        </div>
+      )}
+
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
         {isLoading && <p className="text-gray-500">Carregando...</p>}
         {categories.length === 0 && !isLoading && (
@@ -144,14 +201,18 @@ const index = () => {
           <tbody>
             {categories &&
               categories.map((category) => (
-                <tr key={category._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  <th
-                    className="px-4 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                  >
+                <tr
+                  key={category._id}
+                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  <th className="px-4 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                     {category.title}
                   </th>
                   <td className="py-1 text-center">
-                    <div className="inline-flex rounded-md shadow-xs" role="group">
+                    <div
+                      className="inline-flex rounded-md shadow-xs"
+                      role="group"
+                    >
                       <button
                         onClick={() => handleEdit(category._id)}
                         disabled={isLoading}

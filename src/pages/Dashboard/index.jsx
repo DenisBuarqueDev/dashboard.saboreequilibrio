@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
@@ -8,11 +8,10 @@ const index = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get("api/orders/admin");
+      const response = await api.get("/api/orders/admin");
       setOrders(response.data);
     } catch (err) {
       const errorMessage =

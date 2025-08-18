@@ -15,13 +15,13 @@ const index = () => {
   });
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Buscar produtos (com filtro por categoria ou descrição)
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/api/users");
+      const response = await api.get("/api/users", { withCredentials: true });
       setUsers(response.data.data);
       setMessage("");
     } catch (error) {
@@ -54,12 +54,7 @@ const index = () => {
   // Criar ou atualizar produto
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !form.firstName ||
-      !form.lastName ||
-      !form.phone ||
-      !form.email
-    ) {
+    if (!form.firstName || !form.lastName || !form.phone || !form.email) {
       setMessage("Preencha todos os campos são obrigatórios!");
       return;
     }
@@ -79,6 +74,7 @@ const index = () => {
         // Atualizar produto
         const response = await api.put(`/api/users/${editId}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
         });
         setUsers(users.map((u) => (u._id === editId ? response.data.data : u)));
         setMessage(response.data.message);
@@ -87,6 +83,7 @@ const index = () => {
         // Criar produto
         const response = await api.post("/api/users", formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
         });
         setUsers([response.data.data, ...users]);
         setMessage(response.data.message);
@@ -105,14 +102,15 @@ const index = () => {
       setMessage(error.response?.data?.error || "Erro ao salvar usuário");
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
   // Editar produto
   const handleEdit = async (id) => {
     try {
-      const response = await api.get(`/api/users/${id}`);
+      const response = await api.get(`/api/users/${id}`, {
+        withCredentials: true,
+      });
       setForm({
         firstName: response.data.data.firstName,
         lastName: response.data.data.lastName,
@@ -135,14 +133,15 @@ const index = () => {
 
     setIsLoading(true);
     try {
-      const response = await api.delete(`/api/users/${id}`);
+      const response = await api.delete(`/api/users/${id}`, {
+        withCredentials: true,
+      });
       setUsers(users.filter((p) => p._id !== id));
       setMessage(response.data.message);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao excluir produto");
+      setError(error.response?.data?.error);
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -183,19 +182,47 @@ const index = () => {
         </button>
       </div>
 
+      {message && (
+        <div
+          id="alert-border-3"
+          class="flex items-center p-4 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800"
+          role="alert"
+        >
+          <svg
+            class="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div class="ms-3 text-sm font-medium">{message}</div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          id="alert-border-2"
+          className="flex items-center p-4 mb-4 text-red-800 border-t-4 border-red-300 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-red-800"
+          role="alert"
+        >
+          <svg
+            className="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div className="ms-3 text-sm font-medium">{error}</div>
+        </div>
+      )}
+
       <div class="overflow-x-auto shadow-md sm:rounded-lg">
         {isLoading && <p className="text-gray-500">Carregando...</p>}
         {users.length === 0 && !isLoading && <p>Nenhuma usuário encontrada.</p>}
-
-        {message && (
-          <div
-            class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-            role="alert"
-          >
-            <span class="font-medium">{message}</span>
-          </div>
-        )}
-
         <table class="w-full text-sm text-left border rtl:text-right text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-300 dark:bg-gray-700 dark:text-gray-400">
             <tr>

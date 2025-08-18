@@ -17,33 +17,33 @@ const index = () => {
   });
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Buscar categorias
   const fetchCategories = async () => {
     try {
+      setIsLoading(true);
       const response = await api.get("/api/categories");
-      setCategories(response.data);
-    } catch (error) {
-      setMessage("Erro ao buscar categorias");
-    }
-  };
-
-  // Buscar produtos (com filtro por categoria ou descrição)
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get("/api/products");
-      setProducts(response.data.data);
-      setMessage("");
-    } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao buscar produtos");
+      setCategories(response.data.data);
+    } catch (err) {
+      setError(err.response.data.error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Buscar produtos e categorias ao carregar
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get("/api/products");
+      setProducts(response.data.data);
+    } catch (err) {
+      setError(err.response.data.error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchProducts();
@@ -58,7 +58,7 @@ const index = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && !["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setMessage("Apenas imagens PNG, JPG ou JPEG são permitidas");
+      setError("Apenas imagens PNG, JPG ou JPEG são permitidas!");
       return;
     }
     setForm({ ...form, image: file });
@@ -74,17 +74,17 @@ const index = () => {
       !form.categoryId ||
       !form.description
     ) {
-      setMessage(
+      setError(
         "Título, Subtitulo, preço, categoria, descrição são obrigatórios!"
       );
       return;
     }
     if (form.price <= 0) {
-      setMessage("O preço deve ser maior que zero");
+      setError("O preço deve ser maior que zero!");
       return;
     }
     if (form.stock && form.stock < 0) {
-      setMessage("O estoque não pode ser negativo");
+      setError("O estoque não pode ser negativo!");
       return;
     }
 
@@ -103,6 +103,7 @@ const index = () => {
         // Atualizar produto
         const response = await api.put(`/api/products/${editId}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
         });
         setProducts(
           products.map((p) => (p._id === editId ? response.data.data : p))
@@ -113,6 +114,7 @@ const index = () => {
         // Criar produto
         const response = await api.post("/api/products", formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
         });
         setProducts([response.data.data, ...products]);
         setMessage(response.data.message);
@@ -132,14 +134,15 @@ const index = () => {
       setMessage(error.response?.data?.error || "Erro ao salvar produto");
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
   // Editar produto
   const handleEdit = async (id) => {
     try {
-      const response = await api.get(`/api/products/${id}`);
+      const response = await api.get(`/api/products/${id}`, {
+        withCredentials: true,
+      });
       setForm({
         title: response.data.data.title,
         subtitle: response.data.data.subtitle || "",
@@ -154,7 +157,6 @@ const index = () => {
     } catch (error) {
       setMessage(error.response?.data?.error || "Erro ao buscar produto");
       setIsOpen(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -164,14 +166,15 @@ const index = () => {
 
     setIsLoading(true);
     try {
-      const response = await api.delete(`/api/products/${id}`);
+      const response = await api.delete(`/api/products/${id}`, {
+        withCredentials: true,
+      });
       setProducts(products.filter((p) => p._id !== id));
       setMessage(response.data.message);
     } catch (error) {
       setMessage(error.response?.data?.error || "Erro ao excluir produto");
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -213,21 +216,49 @@ const index = () => {
         </button>
       </div>
 
+      {message && (
+        <div
+          id="alert-border-3"
+          className="flex items-center p-4 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800"
+          role="alert"
+        >
+          <svg
+            className="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div className="ms-3 text-sm font-medium">{message}</div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          id="alert-border-2"
+          className="flex items-center p-4 mb-4 text-red-800 border-t-4 border-red-300 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-red-800"
+          role="alert"
+        >
+          <svg
+            className="shrink-0 w-4 h-4"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <div className="ms-3 text-sm font-medium">{error}</div>
+        </div>
+      )}
+
       <div class="overflow-x-auto shadow-md sm:rounded-lg">
         {isLoading && <p className="text-gray-500">Carregando...</p>}
         {products.length === 0 && !isLoading && (
           <p>Nenhuma categoria encontrada.</p>
         )}
-
-        {message && (
-          <div
-            class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-            role="alert"
-          >
-            <span class="font-medium">{message}</span>
-          </div>
-        )}
-
         <table class="w-full text-sm text-left border rtl:text-right text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-300 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -254,12 +285,19 @@ const index = () => {
           <tbody>
             {products &&
               products.map((product) => (
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <tr
+                  key={product._id}
+                  class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
                   <td
                     scope="row"
                     class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                   >
-                    <img src={`http://localhost:5000${product.image}`} alt={product.title} className="w-8 h-8 rounded-full mr-2" />
+                    <img
+                      src={`http://localhost:5000${product.image}`}
+                      alt={product.title}
+                      className="w-8 h-8 rounded-full mr-2"
+                    />
                     {product.title}
                   </td>
                   <td
