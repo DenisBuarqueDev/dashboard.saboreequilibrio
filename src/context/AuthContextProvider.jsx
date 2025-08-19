@@ -7,7 +7,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
   // pega o estado do usuário logado
   const getStateUser = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/api/auth/me", { withCredentials: true });
       setUser(res.data.user);
     } catch {
@@ -33,6 +34,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
+      setLoading(true);
       const res = await api.post(
         "/api/auth/login",
         { email, password },
@@ -51,6 +53,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      setLoading(true);
       await api.post("/api/auth/logout", {}, { withCredentials: true });
       toast.success("Usuário desconectado!");
       navigate("/login");

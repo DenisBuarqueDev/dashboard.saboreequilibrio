@@ -131,7 +131,7 @@ const index = () => {
       setEditId(null);
       setIsOpen(false);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao salvar produto");
+      setMessage(error.response.data.error);
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +155,7 @@ const index = () => {
       setEditId(id);
       setIsOpen(true);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao buscar produto");
+      setMessage(error.response.data.error);
       setIsOpen(false);
     }
   };
@@ -172,7 +172,7 @@ const index = () => {
       setProducts(products.filter((p) => p._id !== id));
       setMessage(response.data.message);
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao excluir produto");
+      setMessage(error.response.data.error);
     } finally {
       setIsLoading(false);
     }
@@ -294,7 +294,7 @@ const index = () => {
                     class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                   >
                     <img
-                      src={`http://localhost:5000${product.image}`}
+                      src={`${import.meta.env.VITE_API_URL}${product.image}`}
                       alt={product.title}
                       className="w-8 h-8 rounded-full mr-2"
                     />

@@ -253,16 +253,14 @@ const index = () => {
                   >
                     {user.image ? (
                       <img
-                        src={`http://localhost:5000${user.image}`}
+                        src={`${import.meta.env.VITE_API_URL}${user.image}`}
                         alt={user.firstName}
                         className="w-8 h-8 rounded-full mr-2"
                       />
                     ) : (
-                      <img
-                        src="https://picsum.photos/200/200"
-                        alt={user.firstName}
-                        className="w-8 h-8 rounded-full mr-2"
-                      />
+                      <div className="flex items-center justify-center text-white font-semibold w-8 h-8 rounded-full mr-2 bg-gray-400">
+                        F
+                      </div>
                     )}
                     {user.firstName} {user.lastName}
                   </td>
