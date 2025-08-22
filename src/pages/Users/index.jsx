@@ -15,7 +15,6 @@ const index = () => {
   });
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchUsers = async () => {
@@ -136,8 +135,8 @@ const index = () => {
       });
       setUsers(users.filter((p) => p._id !== id));
       setMessage(response.data.message);
-    } catch (error) {
-      setError(error.response?.data?.error);
+    } catch (err) {
+      setMessage(err.response?.data?.error);
     } finally {
       setIsLoading(false);
     }
@@ -167,42 +166,22 @@ const index = () => {
   }
 
   return (
-    <main className="flex flex-col space-y-2 max-w-screen-xl mx-auto w-full p-4">
+    <main className="flex flex-col space-y-2 max-w-screen-xl m-auto w-full p-4">
       <div className="flex items-center justify-between w-full">
         <h1 className="text-xl">Usuários</h1>
         <button
           onClick={abrirModal}
           type="button"
-          className="flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className="flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm p-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         >
           <FaPlus />
-          Adicionar
         </button>
       </div>
 
       {message && (
         <div
           id="alert-border-3"
-          class="flex items-center p-4 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800"
-          role="alert"
-        >
-          <svg
-            class="shrink-0 w-4 h-4"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-          </svg>
-          <div class="ms-3 text-sm font-medium">{message}</div>
-        </div>
-      )}
-
-      {error && (
-        <div
-          id="alert-border-2"
-          className="flex items-center p-4 mb-4 text-red-800 border-t-4 border-red-300 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-red-800"
+          className="flex items-center p-4 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800"
           role="alert"
         >
           <svg
@@ -214,111 +193,91 @@ const index = () => {
           >
             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
           </svg>
-          <div className="ms-3 text-sm font-medium">{error}</div>
+          <div className="ms-3 text-sm font-medium">{message}</div>
         </div>
       )}
 
-      <div class="overflow-x-auto shadow-md sm:rounded-lg">
-        {isLoading && <p className="text-gray-500">Carregando...</p>}
-        {users.length === 0 && !isLoading && <p>Nenhuma usuário encontrada.</p>}
-        <table class="w-full text-sm text-left border rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-300 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3">
-                Nome
-              </th>
-              <th scope="col" class="px-6 py-3">
-                Telefone
-              </th>
-              <th scope="col" class="px-6 py-3">
-                E-mail
-              </th>
-              <th scope="col" class="px-6 py-3 w-24">
-                <span class="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {users &&
-              users.map((user) => (
-                <tr
-                  key={user._id}
-                  class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-                >
-                  <td
-                    scope="row"
-                    class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+      <div className="table w-full border rounded shadow">
+        <div className="table-header-group bg-gray-300">
+          <div className="table-row">
+            <div className="table-cell text-left font-medium p-2">Nome</div>
+            <div className="hidden md:table-cell text-left font-medium p-2">
+              E-mail
+            </div>
+            <div className="hidden md:table-cell text-left font-medium p-2">
+              Telefone
+            </div>
+            <div className="table-cell text-center font-medium w-28 p-2">
+              Ações
+            </div>
+          </div>
+        </div>
+
+        {isLoading && (
+          <p className="text-gray-500 text-center py-4">Carregando...</p>
+        )}
+        {users.length === 0 && !isLoading && (
+          <p className="text-gray-500 text-center">
+            Nenhuma usuário encontrada.
+          </p>
+        )}
+
+        <div className="table-row-group p-2">
+          {users &&
+            users.map((user) => (
+              <div
+                key={user._id}
+                className="table-row items-center hover:bg-gray-100"
+              >
+
+                <div className="table-cell p-2 border-t">
+                  <p>
+                    {user.firstName} {user.lasttName}
+                  </p>
+                </div>
+                <div className="hidden md:table-cell p-2 border-t">
+                  <p>{user.email}</p>
+                </div>
+                <div className="hidden md:table-cell p-2 border-t">
+                  <p>{user.phone}</p>
+                </div>
+                <div className="table-cell w-28 p-2 border-t">
+                  <div
+                    className="inline-flex rounded-md shadow-xs"
+                    role="group"
                   >
-                    {user.image ? (
-                      <img
-                        src={`${import.meta.env.VITE_API_URL}${user.image}`}
-                        alt={user.firstName}
-                        className="w-8 h-8 rounded-full mr-2"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center text-white font-semibold w-8 h-8 rounded-full mr-2 bg-gray-400">
-                        F
-                      </div>
-                    )}
-                    {user.firstName} {user.lastName}
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {user.phone}
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {user.email}
-                  </td>
-                  <td class="px-4 py-2 text-center">
-                    <div class="inline-flex rounded-md shadow-xs" role="group">
-                      <button
-                        onClick={() => handleEdit(user._id)}
-                        disabled={isLoading}
-                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        disabled={isLoading}
-                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    <button
+                      onClick={() => handleEdit(user._id)}
+                      disabled={isLoading}
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user._id)}
+                      disabled={isLoading}
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
 
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={fecharModal}
-        contentLabel="Modal de exemplo"
-        style={{
-          overlay: {
-            backgroundColor: "rgba(0, 0 ,0, 0.8)",
-          },
-          content: {
-            background: "#ffffff",
-            borderRadius: "10px",
-            padding: "20px",
-            width: "50%",
-            height: "370px",
-            margin: "auto",
-          },
-        }}
+        contentLabel="Modal de Usários"
+        className="bg-white rounded-xl p-5 max-w-[600px] min-h-[300px] w-full h-auto mx-auto my-auto outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-2"
       >
-        <form onSubmit={handleSubmit} class="w-full mx-auto">
-          <h1 className="py-2 text-2xl">Usuário</h1>
-          <div className="grid grid-cols-1 mb-2 md:grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit} className="w-full mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium">Nome</label>
               <input
@@ -343,6 +302,9 @@ const index = () => {
                 required
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium">Telefone</label>
               <input
@@ -355,8 +317,6 @@ const index = () => {
                 required
               />
             </div>
-          </div>
-          <div className="grid grid-cols-1 mb-2 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">E-Mail</label>
               <input
@@ -370,20 +330,22 @@ const index = () => {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium">Senha</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleInputChange}
-                className="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-xs-light"
-                disabled={isLoading}
-                required
-              />
-            </div>
           </div>
-          <div className="my-3">
+
+          <div className="w-full">
+            <label className="block text-sm font-medium">Senha</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleInputChange}
+              className="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-xs-light"
+              disabled={isLoading}
+              required
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium">Imagem</label>
             <input
               type="file"
@@ -393,17 +355,18 @@ const index = () => {
               disabled={isLoading}
             />
           </div>
-          <div className="flex items-center justify-between">
+
+          <div className="flex items-center justify-between mt-3">
             {isLoading && (
               <button
                 disabled
                 type="button"
-                class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+                className="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
               >
                 <svg
                   aria-hidden="true"
                   role="status"
-                  class="inline w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600"
+                  className="inline w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600"
                   viewBox="0 0 100 101"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -422,21 +385,23 @@ const index = () => {
             )}
 
             {!isLoading && (
-              <button
-                onClick={handleSubmit}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                {editId ? "Atualizar" : "Adicionar"}
-              </button>
-            )}
+              <>
+                <button
+                  onClick={handleSubmit}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  {editId ? "Atualizar" : "Adicionar"}
+                </button>
 
-            <button
-              onClick={fecharModal}
-              class="text-black hover:bg-gray-200 border border-gray-400 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              disabled={isLoading}
-            >
-              Cancelar
-            </button>
+                <button
+                  onClick={fecharModal}
+                  className="text-black hover:bg-gray-200 border border-gray-400 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
           </div>
         </form>
       </Modal>

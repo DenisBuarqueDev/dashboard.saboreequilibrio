@@ -17,7 +17,6 @@ const index = () => {
   });
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchCategories = async () => {
@@ -26,7 +25,7 @@ const index = () => {
       const response = await api.get("/api/categories");
       setCategories(response.data.data);
     } catch (err) {
-      setError(err.response.data.error);
+      setMessage(err.response.data.error);
     } finally {
       setIsLoading(false);
     }
@@ -38,7 +37,7 @@ const index = () => {
       const response = await api.get("/api/products");
       setProducts(response.data.data);
     } catch (err) {
-      setError(err.response.data.error);
+      setMessage(err.response.data.error);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +57,7 @@ const index = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && !["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setError("Apenas imagens PNG, JPG ou JPEG são permitidas!");
+      setMessage("Apenas imagens PNG, JPG ou JPEG são permitidas!");
       return;
     }
     setForm({ ...form, image: file });
@@ -74,17 +73,17 @@ const index = () => {
       !form.categoryId ||
       !form.description
     ) {
-      setError(
+      setMessage(
         "Título, Subtitulo, preço, categoria, descrição são obrigatórios!"
       );
       return;
     }
     if (form.price <= 0) {
-      setError("O preço deve ser maior que zero!");
+      setMessage("O preço deve ser maior que zero!");
       return;
     }
     if (form.stock && form.stock < 0) {
-      setError("O estoque não pode ser negativo!");
+      setMessage("O estoque não pode ser negativo!");
       return;
     }
 
@@ -134,6 +133,9 @@ const index = () => {
       setMessage(error.response.data.error);
     } finally {
       setIsLoading(false);
+      // função carrega dados na tela
+      fetchCategories();
+      fetchProducts();
     }
   };
 
@@ -209,10 +211,9 @@ const index = () => {
         <button
           onClick={abrirModal}
           type="button"
-          className="flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className="flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm p-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         >
           <FaPlus />
-          Adicionar
         </button>
       </div>
 
@@ -235,140 +236,79 @@ const index = () => {
         </div>
       )}
 
-      {error && (
-        <div
-          id="alert-border-2"
-          className="flex items-center p-4 mb-4 text-red-800 border-t-4 border-red-300 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-red-800"
-          role="alert"
-        >
-          <svg
-            className="shrink-0 w-4 h-4"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-          </svg>
-          <div className="ms-3 text-sm font-medium">{error}</div>
+      <div className="table w-full border rounded shadow">
+        <div className="table-header-group bg-gray-300">
+          <div className="table-row">
+            <div className="table-cell text-left font-medium p-2">Título</div>
+            <div className="hidden md:table-cell text-left font-medium p-2">Preço</div>
+            <div className="hidden md:table-cell text-left font-medium p-2">
+              Categoria
+            </div>
+            <div className="table-cell text-center font-medium w-28 p-2">
+              Ações
+            </div>
+          </div>
         </div>
-      )}
 
-      <div class="overflow-x-auto shadow-md sm:rounded-lg">
-        {isLoading && <p className="text-gray-500">Carregando...</p>}
-        {products.length === 0 && !isLoading && (
-          <p>Nenhuma categoria encontrada.</p>
+        {isLoading && (
+          <p className="text-gray-500 text-center py-4">Carregando...</p>
         )}
-        <table class="w-full text-sm text-left border rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-300 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3">
-                Título
-              </th>
-              <th scope="col" class="px-6 py-3">
-                Subtitulo
-              </th>
-              <th scope="col" class="px-6 py-3">
-                Preço
-              </th>
-              <th scope="col" class="px-6 py-3">
-                Estoque
-              </th>
-              <th scope="col" class="px-6 py-3">
-                Categoria
-              </th>
-              <th scope="col" class="px-6 py-3 w-24">
-                <span class="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {products &&
-              products.map((product) => (
-                <tr
-                  key={product._id}
-                  class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-                >
-                  <td
-                    scope="row"
-                    class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+        {products.length === 0 && !isLoading && (
+          <p className="text-gray-500 text-center">
+            Nenhuma usuário encontrada.
+          </p>
+        )}
+
+        <div className="table-row-group p-2">
+          {products &&
+            products.map((product) => (
+              <div key={product._id} className="table-row hover:bg-gray-100">
+                <div className="table-cell p-2 border-t">
+                  <p>{product.title}</p>
+                </div>
+                <div className="hidden md:table-cell p-2 border-t">
+                  <p>R$ {product.price.toFixed(2).replace(".", ",")}</p>
+                </div>
+                <div className="hidden md:table-cell p-2 border-t">
+                  <p>{product.categoryId.title}</p>
+                </div>
+                <div className="table-cell w-28 p-2 border-t">
+                  <div
+                    className="inline-flex rounded-md shadow-xs"
+                    role="group"
                   >
-                    <img
-                      src={`${import.meta.env.VITE_API_URL}${product.image}`}
-                      alt={product.title}
-                      className="w-8 h-8 rounded-full mr-2"
-                    />
-                    {product.title}
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {product.subtitle}
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {product.price.toFixed(2).replace(".", ",")}
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {product.stock} uni.
-                  </td>
-                  <td
-                    scope="row"
-                    class="px-4 py-2 text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    {product.categoryId.title}
-                  </td>
-                  <td class="px-4 py-2 text-center">
-                    <div class="inline-flex rounded-md shadow-xs" role="group">
-                      <button
-                        onClick={() => handleEdit(product._id)}
-                        disabled={isLoading}
-                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product._id)}
-                        disabled={isLoading}
-                        class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    <button
+                      onClick={() => handleEdit(product._id)}
+                      disabled={isLoading}
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product._id)}
+                      disabled={isLoading}
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
 
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={fecharModal}
-        contentLabel="Modal de exemplo"
-        style={{
-          overlay: {
-            backgroundColor: "rgba(0, 0 ,0, 0.8)",
-          },
-          content: {
-            background: "#ffffff",
-            borderRadius: "10px",
-            padding: "20px",
-            width: "50%",
-            height: "500px",
-            margin: "auto",
-          },
-        }}
+        contentLabel="Modal de Usários"
+        className="bg-white rounded-xl p-5 max-w-[600px] min-h-[420px] w-full h-auto mx-auto my-auto outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-2"
       >
         <form onSubmit={handleSubmit} class="w-full mx-auto">
-          <h1 className="py-2 text-2xl">Produto</h1>
-          <div className="grid grid-cols-1 mb-2 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium">Título</label>
               <input
@@ -394,7 +334,7 @@ const index = () => {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 mb-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 md:gap-4">
             <div>
               <label className="block text-sm font-medium">Preço (R$)</label>
               <input
@@ -451,7 +391,7 @@ const index = () => {
             />
           </div>
 
-          <div className="md:col-span-2 mb-2">
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium">Descrição</label>
             <textarea
               name="description"
@@ -464,14 +404,23 @@ const index = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-3">
             {!isLoading && (
-              <button
-                onClick={handleSubmit}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                {editId ? "Atualizar" : "Adicionar"}
-              </button>
+              <>
+                <button
+                  onClick={handleSubmit}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  {editId ? "Atualizar" : "Adicionar"}
+                </button>
+                <button
+                  onClick={fecharModal}
+                  class="text-black hover:bg-gray-200 border border-gray-400 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </button>
+              </>
             )}
 
             {isLoading && (
@@ -500,14 +449,6 @@ const index = () => {
                 Loading...
               </button>
             )}
-
-            <button
-              onClick={fecharModal}
-              class="text-black hover:bg-gray-200 border border-gray-400 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              disabled={isLoading}
-            >
-              Cancelar
-            </button>
           </div>
         </form>
       </Modal>

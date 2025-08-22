@@ -43,9 +43,9 @@ export function AuthProvider({ children }) {
       setUser(res.data.user);
       toast.success(res.data.message);
       navigate("/");
-    } catch (error) {
-      console.error("Erro no login:", error.response?.data || error.message);
-      toast.error(error.response.data.error);
+    } catch (err) {
+      console.error("Erro:", err.response.data || err.message);
+      toast.error(err.response.data.message);
     } finally {
       setLoading(false);
     }

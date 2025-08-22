@@ -22,9 +22,11 @@ const index = () => {
   };
 
   return (
-    <main className="flex items-center justify-center w-full h-screen p-4 bg-gray-50 md:py-4">
-      <section className="max-w-screen-sm w-full mx-auto border bg-white shadow p-6 rounded">
-        <h1 className="text-2xl font-semibold">Acesso</h1>
+    <main className="flex items-center justify-center w-full h-screen bg-gray-500">
+
+      <section className="max-w-[400px] border bg-white shadow p-6 rounded">
+
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="mb-3 text-gray-400">
           Informe seus dados de Administrador.
         </p>
@@ -78,12 +80,12 @@ const index = () => {
             />{" "}
             Concordo com os termos e condições.
           </div>
-          <div className="flex items-center justify-between">
+          <div>
             {loading && (
               <button
                 disabled
                 type="button"
-                class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+                class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-green-700 focus:text-green-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 flex items-center justify-center"
               >
                 <svg
                   aria-hidden="true"
@@ -102,7 +104,7 @@ const index = () => {
                     fill="#1C64F2"
                   />
                 </svg>
-                Loading...
+                Carregando...
               </button>
             )}
 
@@ -110,22 +112,15 @@ const index = () => {
               <button
                 type="submit"
                 disabled={!isChecked}
-                className={`flex items-center text-white ${
+                className={`flex items-center justify-center gap-2 text-white ${
                   isChecked
                     ? "bg-green-700 hover:bg-green-800 cursor-pointer"
                     : "bg-gray-500 hover:bg-gray-500"
-                } focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800`}
+                } focus:outline-none focus:ring-4 focus:ring-green-300 font-medium w-full rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800`}
               >
-                Entrar <MdLogin className="ml-2 w-5 h-5" />
+                <MdLogin className="w-5 h-5" /> Conectar-se 
               </button>
             )}
-
-            <Link
-              to="/"
-              className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-            >
-              Cancelar
-            </Link>
           </div>
         </form>
       </section>
