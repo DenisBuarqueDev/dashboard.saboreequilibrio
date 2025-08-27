@@ -24,7 +24,7 @@ const index = () => {
       setUsers(response.data.data);
       setMessage("");
     } catch (error) {
-      setMessage(error.response?.data?.error || "Erro ao buscar usuários!");
+      setMessage(error.response.data.error || "Erro ao buscar usuários!!");
     } finally {
       setIsLoading(false);
     }
@@ -214,25 +214,21 @@ const index = () => {
         </div>
 
         {isLoading && (
-          <p className="text-gray-500 text-center py-4">Carregando...</p>
+          <div className="text-gray-500 text-center py-4">Carregando...</div>
         )}
         {users.length === 0 && !isLoading && (
-          <p className="text-gray-500 text-center">
+          <div className="text-gray-500 text-center py-4">
             Nenhuma usuário encontrada.
-          </p>
+          </div>
         )}
 
         <div className="table-row-group p-2">
           {users &&
             users.map((user) => (
-              <div
-                key={user._id}
-                className="table-row items-center hover:bg-gray-100"
-              >
-
-                <div className="table-cell p-2 border-t">
+              <div key={user._id} className="table-row hover:bg-gray-100">
+                <div className="table-cell border-t p-2">
                   <p>
-                    {user.firstName} {user.lasttName}
+                    {user.firstName} {user.lastName}
                   </p>
                 </div>
                 <div className="hidden md:table-cell p-2 border-t">
