@@ -3,14 +3,18 @@ import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
+import NewOrderNotifier from "../../components/checkNewOrders";
 
 const index = () => {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [counts, setCounts] = useState({});
 
+  // Busca as ordens do backend
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const response = await api.get("/api/orders/admin");
       setOrders(response.data);
     } catch (err) {
@@ -23,9 +27,25 @@ const index = () => {
     }
   };
 
+  // Busca a contagem de pedidos por status
+  const fetchCounts = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/orders/countstatus");
+
+      setCounts(res.data);
+    } catch (error) {
+      console.error("Erro ao buscar contagem:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
-  }, []);
+    fetchCounts();
+
+  }, []); // Executa apenas uma vez ao montar o componente
 
   if (loading) {
     return (
@@ -67,7 +87,7 @@ const index = () => {
                 to="/"
                 className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
               >
-                Preparando (4)
+                {counts.preparando || 0} Prep.
               </Link>
             </li>
             <li>
@@ -91,7 +111,7 @@ const index = () => {
                   to="/"
                   className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
                 >
-                  Entrega (2)
+                  {counts.entrega || 0} Entr.
                 </Link>
               </div>
             </li>
@@ -116,14 +136,41 @@ const index = () => {
                   to="/"
                   className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
                 >
-                  Cancelado (0)
+                  {counts.finalizado || 0} Final.
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <svg
+                  className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 6 10"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m1 9 4-4-4-4"
+                  />
+                </svg>
+                <Link
+                  to="/"
+                  className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
+                >
+                  {counts.cancelado || 0} Cancel.
                 </Link>
               </div>
             </li>
           </ol>
         </nav>
 
-        <div className="grid grid-cols-1 gap-1 md:grid-cols-4 md:gap-2">
+        <NewOrderNotifier />
+
+        <div className="grid grid-cols-1 mb-2 md:grid-cols-4 md:gap-2">
           {orders.length === 0 ? (
             <div className="text-center">
               <p className="text-gray-600">Nenhum pedido encontrado.</p>
@@ -136,11 +183,22 @@ const index = () => {
                   className="flex flex-col w-full space-y-1 border p-2 shadow rounded bg-white"
                 >
                   <div className="flex items-center justify-between">
-                    <small className="font-semibold">
-                      {order.userId.firstName} {order.userId.lastName}
-                    </small>
+                    <div className="flex items-center space-x-2">
+                      {order.userId.image && (
+                        <img
+                          className="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                          src={order.userId.image}
+                          alt="Avatar"
+                        />
+                      )}
+
+                      <small className="font-semibold">
+                        {order.userId.firstName} {order.userId.lastName}
+                      </small>
+                    </div>
                     <small>{order.userId.phone}</small>
                   </div>
+
                   <div>
                     <small className="flex items-center">
                       {order.address && (
@@ -153,7 +211,10 @@ const index = () => {
                       )}
                     </small>
                   </div>
-                  <StatusUpdate orderId={order._id} orderStatus={order.status} />
+                  <StatusUpdate
+                    orderId={order._id}
+                    orderStatus={order.status}
+                  />
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <span className="text-sm">
