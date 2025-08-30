@@ -6,7 +6,9 @@ import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
 
 //const socket = io("http://localhost:5000");
-const socket = io("https://backend-saboreequilibrio.onrender.com");
+const socket = io("https://backend-saboreequilibrio.onrender.com", {
+  transports: ["websocket"], // força usar WebSocket
+});
 
 const index = () => {
   const [orders, setOrders] = useState([]);
@@ -190,7 +192,7 @@ const index = () => {
               {orders.map((order) => (
                 <div
                   key={order._id}
-                  className="flex flex-col w-full space-y-1 border p-2 shadow rounded bg-white"
+                  className="flex flex-col w-full gap-4 space-y-1 border p-2 shadow rounded bg-white"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
