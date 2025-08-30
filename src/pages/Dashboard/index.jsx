@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
-import NewOrderNotifier from "../../components/checkNewOrders";
+import { io } from "socket.io-client";
+
+//const socket = io("http://localhost:5000");
+const socket = io("https://backend-saboreequilibrio.onrender.com");
 
 const index = () => {
   const [orders, setOrders] = useState([]);
@@ -17,6 +20,16 @@ const index = () => {
       setLoading(true);
       const response = await api.get("/api/orders/admin");
       setOrders(response.data);
+
+      // Escutar novos pedidos em tempo real
+      socket.on("newOrder", (order) => {
+        setOrders((prev) => [order, ...prev]);
+      });
+
+      return () => {
+        socket.off("newOrder");
+      };
+
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Erro ao buscar pedidos.";
@@ -44,7 +57,6 @@ const index = () => {
   useEffect(() => {
     fetchOrders();
     fetchCounts();
-
   }, []); // Executa apenas uma vez ao montar o componente
 
   if (loading) {
@@ -167,8 +179,6 @@ const index = () => {
             </li>
           </ol>
         </nav>
-
-        <NewOrderNotifier />
 
         <div className="grid grid-cols-1 mb-2 md:grid-cols-4 md:gap-2">
           {orders.length === 0 ? (
