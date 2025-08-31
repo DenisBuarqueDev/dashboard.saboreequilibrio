@@ -5,10 +5,14 @@ import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
 
-//const socket = io("http://localhost:5000");
-const socket = io("https://backend-saboreequilibrio.onrender.com", {
+const socket = io("http://localhost:5000", {
+  // Backend Node Js
   transports: ["websocket"], // força usar WebSocket
 });
+
+/*const socket = io("https://backend-saboreequilibrio.onrender.com", {
+  transports: ["websocket"], // força usar WebSocket
+});*/
 
 const index = () => {
   const [orders, setOrders] = useState([]);
@@ -22,16 +26,6 @@ const index = () => {
       setLoading(true);
       const response = await api.get("/api/orders/admin");
       setOrders(response.data);
-
-      // Escutar novos pedidos em tempo real
-      socket.on("newOrder", (order) => {
-        setOrders((prev) => [order, ...prev]);
-      });
-
-      return () => {
-        socket.off("newOrder");
-      };
-
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Erro ao buscar pedidos.";
@@ -60,6 +54,16 @@ const index = () => {
     fetchOrders();
     fetchCounts();
   }, []); // Executa apenas uma vez ao montar o componente
+
+  useEffect(() => {
+    socket.on("newOrder", (order) => {
+      setOrders((prev) => [order, ...prev]);
+    });
+
+    return () => {
+      socket.off("newOrder");
+    };
+  }, []);
 
   if (loading) {
     return (
