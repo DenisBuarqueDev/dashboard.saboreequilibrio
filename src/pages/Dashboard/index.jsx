@@ -5,14 +5,13 @@ import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000", {
-  // Backend Node Js
-  transports: ["websocket"], // força usar WebSocket
-});
-
-/*const socket = io("https://backend-saboreequilibrio.onrender.com", {
+/*const socket = io("http://localhost:5000", {
   transports: ["websocket"], // força usar WebSocket
 });*/
+
+const socket = io("https://backend-saboreequilibrio.onrender.com", {
+  transports: ["websocket"], // força usar WebSocket
+});
 
 const index = () => {
   const [orders, setOrders] = useState([]);
