@@ -12,6 +12,7 @@ const CountOrders = ({ setActiveStatus }) => {
     cancelado: 0,
   });
 
+  // websocket para ouvir atualizações em tempo real
   useEffect(() => {
     let socket;
 
