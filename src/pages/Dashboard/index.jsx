@@ -3,7 +3,7 @@ import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
-import CountOrders from "../../components/countOrders";
+import CountOrders from "../../components/CountOrders";
 
 
 const socket = io("https://backend-saboreequilibrio.onrender.com", {
