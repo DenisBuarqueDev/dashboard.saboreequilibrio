@@ -15,8 +15,8 @@ const CountOrders = ({ setActiveStatus }) => {
 
   useEffect(() => {
     // Conectar socket
-    //const socket = io("http://localhost:5000");
     const socket = io("https://backend-saboreequilibrio.onrender.com");
+    //const socket = io("http://localhost:5000");
 
     // Buscar contagem inicial da API
     const fetchCounts = async () => {
