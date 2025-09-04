@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { io } from "socket.io-client";
 
@@ -14,24 +13,43 @@ const CountOrders = ({ setActiveStatus }) => {
   });
 
   useEffect(() => {
-    // Conectar socket
-    const socket = io("https://backend-saboreequilibrio.onrender.com");
-    //const socket = io("http://localhost:5000");
+    let socket;
 
-    // Buscar contagem inicial da API
-    const fetchCounts = async () => {
-      const { data } = await api.get("/api/orders/countstatus");
-      setCounts(data);
+    const connectSocket = () => {
+      try {
+        setLoading(true);
+        socket = io("https://backend-saboreequilibrio.onrender.com");
+        // socket = io("http://localhost:5000");
+
+        socket.on("ordersCountUpdated", (newCounts) => {
+          setCounts(newCounts);
+        });
+      } catch (err) {
+        console.error("Erro ao conectar socket:", err);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    const fetchCounts = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get("/api/orders/countstatus");
+        setCounts(data);
+      } catch (err) {
+        console.error("Erro ao buscar contagem inicial:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    connectSocket();
     fetchCounts();
 
-    // Ouvir atualizações em tempo real
-    socket.on("ordersCountUpdated", (newCounts) => {
-      setCounts(newCounts);
-    });
-
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, []);
 
