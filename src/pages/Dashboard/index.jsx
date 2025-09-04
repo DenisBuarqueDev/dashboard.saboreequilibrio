@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
+import CountOrders from "../../components/countOrders";
 
 /*const socket = io("http://localhost:5000", {
   transports: ["websocket"], // força usar WebSocket
@@ -17,58 +17,66 @@ const index = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [counts, setCounts] = useState({});
+  const [activeStatus, setActiveStatus] = useState("preparando"); // 🔹 status inicial
 
   // Busca as ordens do backend
-  const fetchOrders = async () => {
+  const fetchOrders = async (status = "preparando") => {
     try {
       setLoading(true);
-      const response = await api.get("/api/orders/admin");
+      const response = await api.get(`/api/orders/admin?status=${status}`);
       setOrders(response.data);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Erro ao buscar pedidos.";
-      //toast.error(errorMessage);
       setError(errorMessage);
-    } finally {
-      setLoading(false); // sempre finaliza o carregamento
-    }
-  };
-
-  // Busca a contagem de pedidos por status
-  const fetchCounts = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/api/orders/countstatus");
-
-      setCounts(res.data);
-    } catch (error) {
-      console.error("Erro ao buscar contagem:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-    fetchCounts();
-  }, []); // Executa apenas uma vez ao montar o componente
+    fetchOrders(activeStatus);
+  }, [activeStatus]);
 
   useEffect(() => {
     socket.on("newOrder", (order) => {
-      setOrders((prev) => [order, ...prev]);
+      // só adiciona ao estado se for do status ativo
+      if (order.status === activeStatus) {
+        setOrders((prev) => [order, ...prev]);
+      }
+    });
+
+    // ouvir pedidos atualizados
+    socket.on("orderStatusUpdated", (updatedOrder) => {
+      setOrders((prev) => {
+        // Se mudou de status e não pertence mais à aba ativa → remove
+        if (updatedOrder.status !== activeStatus) {
+          return prev.filter((order) => order._id !== updatedOrder._id);
+        }
+
+        // Se pertence ao status ativo → atualiza ou adiciona
+        const exists = prev.find((order) => order._id === updatedOrder._id);
+        if (exists) {
+          return prev.map((order) =>
+            order._id === updatedOrder._id ? updatedOrder : order
+          );
+        } else {
+          return [updatedOrder, ...prev];
+        }
+      });
     });
 
     return () => {
       socket.off("newOrder");
+      socket.off("orderStatusUpdated");
     };
-  }, []);
+  }, [activeStatus]);
 
   if (loading) {
     return (
       <div
         role="status"
-        className="space-y-8 animate-pulse my-9 md:space-y-0 md:space-x-8 rtl:space-x-reverse md:flex md:items-center"
+        className="max-w-screen-sm space-y-8 animate-pulse my-9 md:space-y-0 md:space-x-8 rtl:space-x-reverse md:flex md:items-center"
       >
         <div className="flex items-center justify-center w-full h-48 bg-gray-300 rounded-sm sm:w-96 dark:bg-gray-700">
           <svg
@@ -97,93 +105,9 @@ const index = () => {
   return (
     <main className="flex flex-col w-full p-2 bg-gray-100 min-h-screen md:py-4">
       <section className="max-w-screen-xl w-full flex flex-col mx-auto">
-        <nav className="flex mb-5" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-            <li className="inline-flex items-center">
-              <Link
-                to="/"
-                className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white"
-              >
-                {counts.preparando || 0} Prep.
-              </Link>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <svg
-                  className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 6 10"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 9 4-4-4-4"
-                  />
-                </svg>
-                <Link
-                  to="/"
-                  className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
-                >
-                  {counts.entrega || 0} Entr.
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <svg
-                  className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 6 10"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 9 4-4-4-4"
-                  />
-                </svg>
-                <Link
-                  to="/"
-                  className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
-                >
-                  {counts.finalizado || 0} Final.
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <svg
-                  className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 6 10"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 9 4-4-4-4"
-                  />
-                </svg>
-                <Link
-                  to="/"
-                  className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white"
-                >
-                  {counts.cancelado || 0} Cancel.
-                </Link>
-              </div>
-            </li>
-          </ol>
-        </nav>
+        <CountOrders setActiveStatus={setActiveStatus} />
+
+        {error && <p>error</p>}
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4 md:gap-2">
           {orders.length === 0 ? (
@@ -197,22 +121,23 @@ const index = () => {
                   key={order._id}
                   className="flex flex-col w-full space-y-1 border p-2 shadow rounded bg-white"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {order.userId.image && (
-                        <img
-                          className="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
-                          src={order.userId.image}
-                          alt="Avatar"
-                        />
-                      )}
-
-                      <small className="font-semibold">
-                        {order.userId.firstName} {order.userId.lastName}
-                      </small>
+                  {order.userId && (
+                    <div class="flex items-center gap-4">
+                      <img
+                        class="w-10 h-10 rounded-full"
+                        src={order.userId.image}
+                        alt="Photo"
+                      />
+                      <div class="font-medium dark:text-white">
+                        <div>
+                          {order.userId.firstName} {order.userId.lastName}
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                          {order.userId.phone}
+                        </div>
+                      </div>
                     </div>
-                    <small>{order.userId.phone}</small>
-                  </div>
+                  )}
 
                   <div>
                     <small className="flex items-center">
