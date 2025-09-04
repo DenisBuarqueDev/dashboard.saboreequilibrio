@@ -19,7 +19,7 @@ const CountOrders = ({ setActiveStatus }) => {
       try {
         setLoading(true);
         socket = io("https://backend-saboreequilibrio.onrender.com");
-        // socket = io("http://localhost:5000");
+        //socket = io("http://localhost:5000");
 
         socket.on("ordersCountUpdated", (newCounts) => {
           setCounts(newCounts);
