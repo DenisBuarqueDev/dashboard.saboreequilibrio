@@ -6,8 +6,7 @@ import { io } from "socket.io-client";
 import CountOrders from "../../components/CountOrders";
 
 // URL websocket
-const socket = io("https://backend-saboreequilibrio.onrender.com", {
-//const socket = io("http://localhost:5000", {
+const socket = io(`${import.meta.env.VITE_API_URL}`, {
   transports: ["websocket"], // força usar WebSocket
 });
 

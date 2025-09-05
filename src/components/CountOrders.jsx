@@ -19,9 +19,7 @@ const CountOrders = ({ setActiveStatus }) => {
     const connectSocket = () => {
       try {
         setLoading(true);
-        socket = io("https://backend-saboreequilibrio.onrender.com");
-        //socket = io("http://localhost:5000");
-
+        socket = io(`${import.meta.env.VITE_API_URL}`);
         socket.on("ordersCountUpdated", (newCounts) => {
           setCounts(newCounts);
         });
