@@ -4,6 +4,7 @@ import { FaClockRotateLeft } from "react-icons/fa6";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
 import CountOrders from "../../components/CountOrders";
+import Print from "../../components/Print";
 
 // URL websocket
 const socket = io(`${import.meta.env.VITE_API_URL}`, {
@@ -119,20 +120,23 @@ const index = () => {
                   className="flex flex-col w-full space-y-1 border p-2 shadow rounded bg-white"
                 >
                   {order.userId && (
-                    <div class="flex items-center gap-4">
-                      <img
-                        class="w-10 h-10 rounded-full"
-                        src={order.userId.image}
-                        alt="Photo"
-                      />
-                      <div class="font-medium dark:text-white">
-                        <div>
-                          {order.userId.firstName} {order.userId.lastName}
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                          {order.userId.phone}
+                    <div class="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img
+                          class="w-10 h-10 rounded-full"
+                          src={order.userId.image}
+                          alt="Photo"
+                        />
+                        <div class="font-medium dark:text-white">
+                          <div>
+                            {order.userId.firstName} {order.userId.lastName}
+                          </div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {order.userId.phone}
+                          </div>
                         </div>
                       </div>
+                      <Print id={order._id} />
                     </div>
                   )}
 
