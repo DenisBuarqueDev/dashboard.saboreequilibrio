@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { FaClockRotateLeft } from "react-icons/fa6";
+import { TbMessage } from "react-icons/tb";
 import StatusUpdate from "../../components/StatusUpdate";
 import { io } from "socket.io-client";
 import CountOrders from "../../components/CountOrders";
 import Print from "../../components/Print";
+import Chat from "../../components/Chat";
+import MessageCount from "../../components/MessageCount";
+import { useAuthValue } from "../../context/AuthContextProvider";
 
 // URL websocket
 const socket = io(`${import.meta.env.VITE_API_URL}`, {
@@ -12,10 +16,13 @@ const socket = io(`${import.meta.env.VITE_API_URL}`, {
 });
 
 const index = () => {
+  const { user } = useAuthValue();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeStatus, setActiveStatus] = useState("preparando"); // 🔹 status inicial
+  const [activeStatus, setActiveStatus] = useState("preparando");
+  const [chat, setChat] = useState([]);
 
   // Busca as ordens do backend
   const fetchOrders = async (status = "preparando") => {
@@ -69,6 +76,24 @@ const index = () => {
       socket.off("orderStatusUpdated");
     };
   }, [activeStatus]);
+
+  const handleChat = async (orderId) => {
+    openModal(false);
+    setChat(orderId);
+  };
+
+  // Hook que demonstra se a modal está aberta ou não
+  const [modalIsOpen, setIsOpen] = useState(true);
+
+  // Função que abre a modal
+  function openModal() {
+    setIsOpen(false);
+  }
+
+  // Função que fecha a modal
+  function closeModal() {
+    setIsOpen(true);
+  }
 
   if (loading) {
     return (
@@ -136,7 +161,18 @@ const index = () => {
                           </div>
                         </div>
                       </div>
-                      <Print id={order._id} />
+
+                      <div className="flex items-center gap-2">
+                        <Print id={order._id} />
+                        <button
+                          onClick={() => handleChat(order._id)}
+                          type="button"
+                          class="inline-flex items-center px-2 py-1 text-sm text-center text-black border rounded-md shadow-sm hover:bg-gray-100 focus:ring-2 focus:outline-none focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+                        >
+                          <TbMessage />
+                          <MessageCount orderId={order._id} />
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -234,6 +270,24 @@ const index = () => {
               ))}
             </>
           )}
+        </div>
+
+        <div
+          className="fixed bottom-0 left-0 right-0 max-w-screen-sm w-full mx-auto p-2 bg-gray bg-white"
+          hidden={modalIsOpen}
+        >
+          <div className="flex items-center justify-between mb-2 p-2">
+            <p className="font-bold">Chat Atendimento:</p>
+            <button
+              type="button"
+              onClick={closeModal}
+              className="flex items-center justify-center px-2 rounded-full text-sm text-white bg-red-500"
+            >
+              X
+            </button>
+          </div>
+
+          <Chat orderId={chat} userId={user.id} />
         </div>
       </section>
     </main>
